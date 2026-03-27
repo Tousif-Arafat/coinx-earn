@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>CoinX Earn</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-storage-compat.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#0f1118;--card:#1a1d2e;--card2:#232740;--accent:#00d4aa;--accent2:#00b894;--accent-glow:rgba(0,212,170,.15);--text:#e8e8e8;--text2:#8a8fa8;--danger:#ff4757;--warning:#ffa502;--success:#2ed573;--blue:#3742fa;--purple:#a855f7;--border:#2a2e45;--nav:#141728;--modal-bg:rgba(0,0,0,.7)}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;padding-bottom:75px;padding-top:60px}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+
+/* TOP HEADER */
+.top-header{position:fixed;top:0;left:0;right:0;height:58px;background:linear-gradient(135deg,#141728,#1a1d2e);display:flex;align-items:center;justify-content:space-between;padding:0 16px;z-index:100;border-bottom:1px solid var(--border);backdrop-filter:blur(12px)}
+.top-header .logo{display:flex;align-items:center;gap:10px}
+.top-header .logo-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#fff}
+.top-header .logo-text{font-size:18px;font-weight:700;background:linear-gradient(135deg,var(--accent),#fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.notif-bell{position:relative;cursor:pointer;padding:8px}
+.notif-bell i{font-size:22px;color:var(--text2);transition:.2s}
+.notif-bell:active i{color:var(--accent)}
+.notif-badge{position:absolute;top:2px;right:2px;min-width:18px;height:18px;background:var(--danger);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;border:2px solid var(--nav);display:none}
+.notif-badge.show{display:flex}
+
+/* BOTTOM NAV */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:68px;background:var(--nav);border-top:1px solid var(--border);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom)}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;transition:.2s;position:relative}
+.nav-item i{font-size:20px;color:var(--text2);transition:.2s}
+.nav-item span{font-size:10px;color:var(--text2);font-weight:500;transition:.2s}
+.nav-item.active i{color:var(--accent)}
+.nav-item.active span{color:var(--accent)}
+.nav-item.active::before{content:'';position:absolute;top:-1px;left:50%;transform:translateX(-50%);width:30px;height:3px;background:var(--accent);border-radius:0 0 4px 4px}
+
+/* SECTIONS */
+.section{display:none;padding:16px;animation:fadeIn .3s ease}
+.section.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* CARDS */
+.card{background:var(--card);border-radius:16px;padding:16px;margin-bottom:14px;border:1px solid var(--border)}
+.card-glow{box-shadow:0 4px 20px var(--accent-glow)}
+
+/* BALANCE CARD */
+.balance-card{background:linear-gradient(135deg,#1e2240,#252a4a);border-radius:20px;padding:24px;text-align:center;border:1px solid var(--border);position:relative;overflow:hidden;margin-bottom:20px}
+.balance-card::before{content:'';position:absolute;top:-50%;right:-50%;width:100%;height:100%;background:radial-gradient(circle,var(--accent-glow),transparent);pointer-events:none}
+.balance-label{font-size:13px;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:1.5px;font-weight:600}
+.balance-amount{font-size:38px;font-weight:800;background:linear-gradient(135deg,var(--accent),#fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px}
+.balance-convert{font-size:12px;color:var(--text2)}
+.balance-convert b{color:var(--accent)}
+
+/* TASK CARDS */
+.task-card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:12px;border:1px solid var(--border);display:flex;align-items:center;gap:12px;transition:.2s}
+.task-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.task-info{flex:1;min-width:0}
+.task-info h4{font-size:14px;font-weight:600;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.task-info p{font-size:12px;color:var(--text2)}
+.task-coins{font-size:12px;color:var(--accent);font-weight:700}
+.task-actions{display:flex;gap:6px;flex-shrink:0}
+.btn-sm{padding:6px 12px;border-radius:8px;font-size:11px;font-weight:600;border:none;cursor:pointer;transition:.2s}
+.btn-start{background:var(--accent);color:#000}
+.btn-start:active{transform:scale(.95)}
+.btn-proof{background:var(--card2);color:var(--text);border:1px solid var(--border)}
+.btn-proof:active{transform:scale(.95)}
+.btn-pending{background:var(--warning);color:#000;cursor:default;opacity:.8}
+.btn-disabled{background:var(--card2);color:var(--text2);cursor:default;opacity:.5}
+
+/* SECTION TITLES */
+.section-title{font-size:16px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.section-title i{color:var(--accent)}
+
+/* AD SLOTS */
+.ad-slot{background:linear-gradient(135deg,var(--card),var(--card2));border-radius:14px;padding:20px;text-align:center;border:1px solid var(--border);margin-bottom:12px;cursor:pointer;transition:.2s;position:relative;overflow:hidden}
+.ad-slot:active{transform:scale(.98)}
+.ad-slot .ad-icon{font-size:36px;margin-bottom:8px;color:var(--accent)}
+.ad-slot h4{font-size:14px;margin-bottom:4px}
+.ad-slot p{font-size:12px;color:var(--text2)}
+.ad-slot .ad-reward{color:var(--accent);font-weight:700;font-size:13px;margin-top:6px}
+.ad-slot.watching{pointer-events:none}
+.ad-slot .ad-timer{display:none;font-size:22px;font-weight:800;color:var(--accent)}
+.ad-slot.watching .ad-timer{display:block}
+.ad-slot.watching .ad-icon,.ad-slot.watching h4,.ad-slot.watching p,.ad-slot.watching .ad-reward{display:none}
+.ad-cooldown{font-size:12px;color:var(--warning);margin-top:6px;font-weight:600}
+
+/* SPIN WHEEL */
+.spin-container{display:flex;flex-direction:column;align-items:center;padding:20px 0}
+.wheel-wrapper{position:relative;width:280px;height:280px;margin-bottom:20px}
+.wheel-pointer{position:absolute;top:-12px;left:50%;transform:translateX(-50%);z-index:10;font-size:30px;color:var(--danger);filter:drop-shadow(0 2px 6px rgba(255,71,87,.5))}
+.wheel-canvas{width:280px;height:280px;border-radius:50%;border:4px solid var(--accent);box-shadow:0 0 30px var(--accent-glow),inset 0 0 20px rgba(0,0,0,.3)}
+.spin-btn{padding:14px 40px;border-radius:30px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#000;font-size:16px;font-weight:700;border:none;cursor:pointer;transition:.2s;box-shadow:0 4px 20px var(--accent-glow)}
+.spin-btn:active{transform:scale(.95)}
+.spin-btn:disabled{opacity:.5;cursor:default;transform:none}
+.spin-cooldown{text-align:center;color:var(--text2);font-size:13px;margin-top:8px}
+.extra-spin-area{text-align:center;margin-top:16px;padding:14px;background:var(--card2);border-radius:14px;border:1px solid var(--border)}
+.extra-spin-area h4{font-size:14px;margin-bottom:6px}
+.extra-spin-area p{font-size:12px;color:var(--text2);margin-bottom:10px}
+.extra-spin-progress{display:flex;gap:8px;justify-content:center;margin-bottom:10px}
+.extra-dot{width:28px;height:28px;border-radius:50%;background:var(--card);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text2)}
+.extra-dot.filled{background:var(--accent);border-color:var(--accent);color:#000;font-weight:700}
+.btn-extra{padding:8px 20px;border-radius:20px;background:var(--purple);color:#fff;font-size:12px;font-weight:600;border:none;cursor:pointer}
+.btn-extra:disabled{opacity:.5;cursor:default}
+
+/* VIP LOCK */
+.vip-lock{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:50vh;text-align:center;padding:20px}
+.vip-lock-icon{width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,var(--card2),var(--card));display:flex;align-items:center;justify-content:center;margin-bottom:20px;border:2px solid var(--border)}
+.vip-lock-icon i{font-size:40px;color:var(--warning)}
+.vip-lock h2{font-size:20px;margin-bottom:8px}
+.vip-lock p{color:var(--text2);font-size:14px;margin-bottom:16px;line-height:1.5}
+.vip-progress-bar{width:100%;max-width:260px;height:8px;background:var(--card2);border-radius:4px;overflow:hidden;margin-bottom:8px}
+.vip-progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:4px;transition:.5s}
+.vip-progress-text{font-size:12px;color:var(--text2)}
+
+/* REFERRAL */
+.ref-code-box{background:linear-gradient(135deg,var(--card),var(--card2));border-radius:16px;padding:20px;text-align:center;border:1px solid var(--border);margin-bottom:16px}
+.ref-code{font-size:22px;font-weight:800;letter-spacing:2px;color:var(--accent);margin:10px 0}
+.ref-link{font-size:11px;color:var(--text2);word-break:break-all;margin-bottom:14px}
+.btn-copy{padding:10px 30px;border-radius:25px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#000;font-weight:700;border:none;cursor:pointer;font-size:14px;transition:.2s}
+.btn-copy:active{transform:scale(.95)}
+.ref-stats{display:flex;gap:12px;margin-bottom:16px}
+.ref-stat{flex:1;background:var(--card);border-radius:12px;padding:14px;text-align:center;border:1px solid var(--border)}
+.ref-stat .num{font-size:22px;font-weight:800;color:var(--accent)}
+.ref-stat .label{font-size:11px;color:var(--text2);margin-top:4px}
+.leaderboard-item{display:flex;align-items:center;gap:12px;padding:12px;background:var(--card);border-radius:12px;margin-bottom:8px;border:1px solid var(--border)}
+.lb-rank{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0}
+.lb-rank.gold{background:linear-gradient(135deg,#f9ca24,#f0932b);color:#000}
+.lb-rank.silver{background:linear-gradient(135deg,#dfe6e9,#b2bec3);color:#000}
+.lb-rank.bronze{background:linear-gradient(135deg,#e17055,#d63031);color:#fff}
+.lb-rank.normal{background:var(--card2);color:var(--text2)}
+.lb-avatar{width:36px;height:36px;border-radius:50%;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.lb-info{flex:1}
+.lb-info h4{font-size:13px;font-weight:600}
+.lb-info p{font-size:11px;color:var(--text2)}
+.lb-earnings{text-align:right}
+.lb-earnings .coins{font-size:13px;font-weight:700;color:var(--accent)}
+.lb-earnings .refs{font-size:10px;color:var(--text2)}
+.ref-rules{background:var(--card);border-radius:14px;padding:16px;border:1px solid var(--border)}
+.ref-rules h4{font-size:14px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.ref-rules li{font-size:12px;color:var(--text2);margin-bottom:6px;padding-left:16px;position:relative;line-height:1.5}
+.ref-rules li::before{content:'•';position:absolute;left:0;color:var(--accent)}
+
+/* PROFILE */
+.profile-header{text-align:center;padding:20px 0}
+.profile-avatar{width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:28px;font-weight:800;color:#fff;border:3px solid var(--accent)}
+.profile-id{font-size:12px;color:var(--text2);margin-bottom:4px}
+.profile-balance{font-size:24px;font-weight:800;color:var(--accent)}
+.action-btns{display:flex;gap:10px;margin-bottom:16px}
+.action-btn{flex:1;padding:12px;border-radius:12px;background:var(--card);border:1px solid var(--border);text-align:center;cursor:pointer;transition:.2s}
+.action-btn:active{transform:scale(.97)}
+.action-btn i{font-size:20px;color:var(--accent);margin-bottom:6px;display:block}
+.action-btn span{font-size:12px;font-weight:600}
+.withdraw-box{background:var(--card);border-radius:16px;padding:18px;border:1px solid var(--border);margin-bottom:16px}
+.withdraw-box h3{font-size:15px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.form-group{margin-bottom:12px}
+.form-group label{font-size:12px;color:var(--text2);margin-bottom:6px;display:block}
+.form-group select,.form-group input{width:100%;padding:12px;border-radius:10px;background:var(--card2);border:1px solid var(--border);color:var(--text);font-size:14px;outline:none;transition:.2s}
+.form-group select:focus,.form-group input:focus{border-color:var(--accent)}
+.form-note{font-size:11px;color:var(--text2);margin-bottom:6px;line-height:1.4}
+.form-warning{font-size:11px;color:var(--danger);margin-bottom:14px;display:flex;align-items:center;gap:4px}
+.btn-withdraw{width:100%;padding:14px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#000;font-size:15px;font-weight:700;border:none;cursor:pointer;transition:.2s}
+.btn-withdraw:active{transform:scale(.98)}
+.history-item{display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--card);border-radius:12px;margin-bottom:8px;border:1px solid var(--border)}
+.history-left{display:flex;flex-direction:column;gap:2px}
+.history-left .method{font-size:13px;font-weight:600}
+.history-left .date{font-size:11px;color:var(--text2)}
+.history-right{text-align:right}
+.history-right .amount{font-size:14px;font-weight:700}
+.history-right .status{font-size:11px;font-weight:600;padding:2px 8px;border-radius:6px;margin-top:3px;display:inline-block}
+.status-pending{background:rgba(255,165,2,.15);color:var(--warning)}
+.status-paid{background:rgba(46,213,115,.15);color:var(--success)}
+.status-rejected{background:rgba(255,71,87,.15);color:var(--danger)}
+
+/* MODAL */
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--modal-bg);z-index:200;display:none;align-items:center;justify-content:center;padding:20px;animation:fadeIn .2s ease}
+.modal-overlay.show{display:flex}
+.modal-box{background:var(--card);border-radius:20px;padding:24px;width:100%;max-width:360px;max-height:80vh;overflow-y:auto;border:1px solid var(--border);position:relative}
+.modal-box h3{font-size:17px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.modal-box p{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:10px}
+.modal-close{position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:50%;background:var(--card2);border:none;color:var(--text2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.modal-close:active{transform:scale(.9)}
+
+/* BOTTOM SHEET */
+.bottom-sheet-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--modal-bg);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.bottom-sheet-overlay.show{display:flex}
+.bottom-sheet{background:var(--card);border-radius:20px 20px 0 0;padding:24px;width:100%;max-width:500px;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.bottom-sheet .handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px}
+.bottom-sheet h3{font-size:16px;font-weight:700;margin-bottom:14px}
+.upload-area{border:2px dashed var(--border);border-radius:14px;padding:30px;text-align:center;cursor:pointer;transition:.2s;margin-bottom:14px}
+.upload-area:active{border-color:var(--accent)}
+.upload-area i{font-size:32px;color:var(--text2);margin-bottom:8px}
+.upload-area p{font-size:13px;color:var(--text2)}
+.upload-area .file-name{font-size:12px;color:var(--accent);margin-top:6px;display:none}
+.btn-submit-proof{width:100%;padding:14px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#000;font-size:15px;font-weight:700;border:none;cursor:pointer}
+
+/* TOAST */
+.toast-container{position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:300;display:flex;flex-direction:column;gap:8px;pointer-events:none;width:90%;max-width:360px}
+.toast{padding:12px 16px;border-radius:12px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:8px;animation:toastIn .3s ease;pointer-events:auto;box-shadow:0 8px 30px rgba(0,0,0,.3)}
+.toast.success{background:linear-gradient(135deg,#2ed573,#05c46b);color:#000}
+.toast.error{background:linear-gradient(135deg,#ff4757,#ff3838);color:#fff}
+.toast.info{background:linear-gradient(135deg,#3742fa,#5352ed);color:#fff}
+.toast.loading{background:linear-gradient(135deg,var(--card2),var(--card));color:var(--text);border:1px solid var(--border)}
+@keyframes toastIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+
+/* NOTIF MODAL */
+.notif-list{max-height:50vh;overflow-y:auto}
+.notif-item{padding:12px;background:var(--card2);border-radius:10px;margin-bottom:8px}
+.notif-item .notif-title{font-size:13px;font-weight:600;margin-bottom:4px}
+.notif-item .notif-body{font-size:12px;color:var(--text2);line-height:1.4}
+.notif-item .notif-time{font-size:10px;color:var(--text2);margin-top:4px}
+
+/* SIMULATED AD OVERLAY */
+.ad-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:#000;z-index:250;display:none;flex-direction:column;align-items:center;justify-content:center}
+.ad-overlay.show{display:flex}
+.ad-overlay .ad-label{font-size:12px;color:#666;margin-bottom:8px;text-transform:uppercase;letter-spacing:2px}
+.ad-overlay .ad-big-icon{font-size:60px;color:var(--accent);margin-bottom:16px;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+.ad-overlay .ad-countdown{font-size:48px;font-weight:800;color:#fff;margin-bottom:8px}
+.ad-overlay .ad-skip{padding:10px 24px;border-radius:20px;background:var(--card2);color:var(--text2);border:1px solid var(--border);font-size:13px;cursor:pointer;margin-top:20px;display:none}
+.ad-overlay .ad-progress{width:80%;max-width:300px;height:4px;background:var(--card2);border-radius:2px;margin-top:16px;overflow:hidden}
+.ad-overlay .ad-progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width 1s linear}
+
+/* Animations */
+@keyframes spin-wheel{from{transform:rotate(0deg)}to{transform:rotate(var(--spin-deg))}}
+.spinning{animation:spin-wheel var(--spin-duration) cubic-bezier(.17,.67,.12,.99) forwards}
+</style>
+</head>
+<body>
+
+<!-- TOP HEADER -->
+<header class="top-header">
+  <div class="logo">
+    <div class="logo-icon">CX</div>
+    <span class="logo-text">CoinX Earn</span>
+  </div>
+  <div class="notif-bell" onclick="openNotifModal()">
+    <i class="fas fa-bell"></i>
+    <span class="notif-badge" id="notifBadge">0</span>
+  </div>
+</header>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- SECTIONS -->
+<!-- HOME -->
+<div class="section active" id="sec-home">
+  <div class="balance-card">
+    <div class="balance-label">Total Balance</div>
+    <div class="balance-amount" id="homeBalance">0</div>
+    <div class="balance-convert">≈ <b id="homeBDT">0.00</b> BDT</div>
+  </div>
+  <div class="section-title"><i class="fas fa-tasks"></i> Social Media Tasks</div>
+  <div id="socialTasksList"></div>
+</div>
+
+<!-- FREE TASK -->
+<div class="section" id="sec-freetask">
+  <div class="section-title"><i class="fas fa-ad"></i> Ad Tasks</div>
+  <div id="adSlotsContainer"></div>
+  <div class="section-title" style="margin-top:10px"><i class="fas fa-star"></i> Daily Lucky Spin</div>
+  <div class="card" id="spinCard">
+    <div class="spin-container">
+      <div class="wheel-wrapper">
+        <div class="wheel-pointer"><i class="fas fa-caret-down"></i></div>
+        <canvas class="wheel-canvas" id="wheelCanvas" width="280" height="280"></canvas>
+      </div>
+      <button class="spin-btn" id="spinBtn" onclick="startSpin()"><i class="fas fa-sync-alt"></i> SPIN NOW</button>
+      <div class="spin-cooldown" id="spinCooldown"></div>
+    </div>
+    <div class="extra-spin-area" id="extraSpinArea">
+      <h4><i class="fas fa-plus-circle" style="color:var(--purple)"></i> Extra Spin</h4>
+      <p>Watch 2 ads to earn 1 extra spin today!</p>
+      <div class="extra-spin-progress" id="extraDots">
+        <div class="extra-dot" id="extraDot0">1</div>
+        <div class="extra-dot" id="extraDot1">2</div>
+      </div>
+      <button class="btn-extra" id="extraAdBtn" onclick="watchExtraAd()"><i class="fas fa-play"></i> Watch Ad</button>
+    </div>
+  </div>
+</div>
+
+<!-- VIP -->
+<div class="section" id="sec-vip">
+  <div id="vipLockScreen" class="vip-lock">
+    <div class="vip-lock-icon"><i class="fas fa-lock"></i></div>
+    <h2>VIP Tasks Locked</h2>
+    <p>Unlock premium high-paying tasks by referring <b>4 friends</b> to CoinX Earn!</p>
+    <div class="vip-progress-bar"><div class="vip-progress-fill" id="vipProgressFill" style="width:0%"></div></div>
+    <div class="vip-progress-text" id="vipProgressText">0 / 4 Referrals</div>
+  </div>
+  <div id="vipUnlocked" style="display:none">
+    <div class="section-title"><i class="fas fa-crown" style="color:var(--warning)"></i> VIP CPA Offers</div>
+    <div id="vipTasksList"></div>
+  </div>
+</div>
+
+<!-- REFERRAL -->
+<div class="section" id="sec-referral">
+  <div class="ref-code-box">
+    <div style="font-size:13px;color:var(--text2);margin-bottom:6px"><i class="fas fa-gift" style="color:var(--accent)"></i> Your Referral Code</div>
+    <div class="ref-code" id="refCode">CX-XXXXXX</div>
+    <div class="ref-link" id="refLink">https://t.me/CoinXEarnBot?start=CX-XXXXXX</div>
+    <button class="btn-copy" onclick="copyRefLink()"><i class="fas fa-copy"></i> Copy Link</button>
+  </div>
+  <div class="ref-stats">
+    <div class="ref-stat"><div class="num" id="refCount">0</div><div class="label">Referrals</div></div>
+    <div class="ref-stat"><div class="num" id="refEarnings">0</div><div class="label">Coins Earned</div></div>
+  </div>
+  <div class="section-title"><i class="fas fa-trophy"></i> Leaderboard</div>
+  <div id="leaderboardList"></div>
+  <div class="ref-rules" style="margin-top:16px">
+    <h4><i class="fas fa-info-circle" style="color:var(--accent)"></i> Referral Rules</h4>
+    <ul style="list-style:none;padding:0">
+      <!-- EDITABLE REFERRAL RULES -->
+      <li>Share your referral link with friends via Telegram or social media.</li>
+      <li>You earn <b style="color:var(--accent)">500 coins</b> for each friend who joins using your link.</li>
+      <li>Your friend also gets <b style="color:var(--accent)">200 coins</b> as a welcome bonus.</li>
+      <li>Refer 4 friends to unlock exclusive VIP high-paying tasks.</li>
+      <li>Referral rewards are added automatically when your friend registers.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- PROFILE -->
+<div class="section" id="sec-profile">
+  <div class="profile-header">
+    <div class="profile-avatar" id="profileAvatar">U</div>
+    <div class="profile-id" id="profileId">ID: ------</div>
+    <div class="profile-balance"><i class="fas fa-coins" style="color:var(--accent)"></i> <span id="profileBalance">0</span></div>
+  </div>
+  <div class="action-btns">
+    <div class="action-btn" onclick="openHowToWork()">
+      <i class="fas fa-question-circle"></i>
+      <span>How to Work</span>
+    </div>
+    <div class="action-btn" onclick="openAboutApp()">
+      <i class="fas fa-info-circle"></i>
+      <span>About App</span>
+    </div>
+  </div>
+  <div class="withdraw-box">
+    <h3><i class="fas fa-wallet" style="color:var(--accent)"></i> Withdraw Coins</h3>
+    <div class="form-group">
+      <label>Payment Method</label>
+      <select id="withdrawMethod">
+        <option value="">Select Method</option>
+        <option value="Mobile Recharge">Mobile Recharge</option>
+        <option value="Bkash">Bkash</option>
+        <option value="Nagad">Nagad</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Coin Amount</label>
+      <input type="number" id="withdrawAmount" placeholder="Enter coin amount">
+    </div>
+    <div class="form-group">
+      <label>Account Number</label>
+      <input type="tel" id="withdrawAccount" placeholder="01XXXXXXXXX" maxlength="11">
+    </div>
+    <div class="form-note">Minimum Recharge: <b style="color:var(--accent)">25,000</b> | Minimum Bkash/Nagad: <b style="color:var(--accent)">55,000</b></div>
+    <div class="form-warning"><i class="fas fa-exclamation-triangle"></i> 5 Taka fee will be deducted automatically</div>
+    <button class="btn-withdraw" onclick="processWithdraw()"><i class="fas fa-paper-plane"></i> Withdraw Now</button>
+  </div>
+  <div class="section-title"><i class="fas fa-history"></i> Withdraw History</div>
+  <div id="withdrawHistory"></div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <div class="nav-item active" data-section="home" onclick="switchSection('home')">
+    <i class="fas fa-home"></i><span>Home</span>
+  </div>
+  <div class="nav-item" data-section="freetask" onclick="switchSection('freetask')">
+    <i class="fas fa-gift"></i><span>Free Task</span>
+  </div>
+  <div class="nav-item" data-section="vip" onclick="switchSection('vip')">
+    <i class="fas fa-crown"></i><span>VIP</span>
+  </div>
+  <div class="nav-item" data-section="referral" onclick="switchSection('referral')">
+    <i class="fas fa-users"></i><span>Referral</span>
+  </div>
+  <div class="nav-item" data-section="profile" onclick="switchSection('profile')">
+    <i class="fas fa-user"></i><span>Profile</span>
+  </div>
+</nav>
+
+<!-- NOTIFICATION MODAL -->
+<div class="modal-overlay" id="notifModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('notifModal')"><i class="fas fa-times"></i></button>
+    <h3><i class="fas fa-bell" style="color:var(--accent)"></i> Notifications</h3>
+    <div id="notifContent">
+      <div class="notif-item">
+        <div class="notif-body" id="globalMessage">No notifications yet.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HOW TO WORK MODAL -->
+<div class="modal-overlay" id="howToWorkModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('howToWorkModal')"><i class="fas fa-times"></i></button>
+    <h3><i class="fas fa-question-circle" style="color:var(--accent)"></i> How to Work</h3>
+    <!-- EDITABLE: Change this content as needed -->
+    <p><b>1. Complete Tasks:</b> Go to the Home tab and complete social media tasks by following the instructions and submitting proof screenshots.</p>
+    <p><b>2. Watch Ads:</b> Visit Free Task to watch ads and earn coins instantly. You can also spin the lucky wheel daily!</p>
+    <p><b>3. Refer Friends:</b> Share your unique referral link and earn 500 coins per referral. Unlock VIP tasks by referring 4 friends.</p>
+    <p><b>4. Withdraw:</b> Once you have enough coins, go to Profile and withdraw via Mobile Recharge, Bkash, or Nagad.</p>
+    <p><b>Rate:</b> 1000 Coins = 1 Taka (BDT)</p>
+  </div>
+</div>
+
+<!-- ABOUT APP MODAL -->
+<div class="modal-overlay" id="aboutAppModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('aboutAppModal')"><i class="fas fa-times"></i></button>
+    <h3><i class="fas fa-info-circle" style="color:var(--accent)"></i> About CoinX Earn</h3>
+    <!-- EDITABLE: Change this content as needed -->
+    <p>CoinX Earn is a rewards platform where you can earn coins by completing simple tasks, watching ads, and referring friends.</p>
+    <p>Convert your coins to real money and withdraw via Bkash, Nagad, or Mobile Recharge.</p>
+    <p><b>Version:</b> 1.0.0</p>
+    <p><b>Support:</b> Contact us on Telegram @CoinXEarnSupport</p>
+  </div>
+</div>
+
+<!-- BOTTOM SHEET FOR PROOF UPLOAD -->
+<div class="bottom-sheet-overlay" id="proofSheet">
+  <div class="bottom-sheet">
+    <div class="handle"></div>
+    <h3><i class="fas fa-cloud-upload-alt" style="color:var(--accent)"></i> Submit Proof</h3>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:14px">Upload a screenshot as proof of task completion.</p>
+    <div class="upload-area" id="uploadArea" onclick="document.getElementById('proofFileInput').click()">
+      <i class="fas fa-cloud-upload-alt"></i>
+      <p>Tap to select screenshot</p>
+      <div class="file-name" id="fileName"></div>
+    </div>
+    <input type="file" id="proofFileInput" accept="image/*" style="display:none" onchange="handleFileSelect(event)">
+    <button class="btn-submit-proof" id="submitProofBtn" onclick="submitProof()"><i class="fas fa-check"></i> Submit Proof</button>
+  </div>
+</div>
+
+<!-- SIMULATED AD OVERLAY -->
+<div class="ad-overlay" id="adOverlay">
+  <div class="ad-label">Advertisement</div>
+  <div class="ad-big-icon"><i class="fas fa-ad"></i></div>
+  <div class="ad-countdown" id="adCountdownText">5</div>
+  <div class="ad-progress"><div class="ad-progress-fill" id="adProgressFill" style="width:0%"></div></div>
+  <button class="ad-skip" id="adSkipBtn" onclick="closeAd()">Close Ad</button>
+</div>
+
+<!-- SPIN RESULT MODAL -->
+<div class="modal-overlay" id="spinResultModal">
+  <div class="modal-box" style="text-align:center">
+    <button class="modal-close" onclick="closeModal('spinResultModal')"><i class="fas fa-times"></i></button>
+    <div style="font-size:50px;margin:10px 0">🎉</div>
+    <h3 style="justify-content:center">Congratulations!</h3>
+    <p style="font-size:20px;font-weight:800;color:var(--accent);margin:10px 0" id="spinResultCoins">+0 Coins</p>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:14px">Watch an ad to claim your reward!</p>
+    <button class="spin-btn" style="font-size:14px;padding:12px 30px" onclick="watchSpinRewardAd()" id="claimSpinBtn"><i class="fas fa-play"></i> Watch Ad & Claim</button>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// CONFIGURATION - PASTE YOUR TELEGRAM BOT TOKEN & CHAT ID HERE
+// ============================================================
+const TELEGRAM_BOT_TOKEN = "8788409669:AAHZPe7DZwdYXeb-z1jlf3PcExTS9RCSBXU";  // <-- Paste your Bot Token
+const TELEGRAM_CHAT_ID = "6712107235";        // <-- Paste your Chat ID
+// ============================================================
+
+// Firebase Configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyA99YS1p8wBXnd2tnS3_FA_dKjwSf59-hY",
+  authDomain: "coinx-earn.firebaseapp.com",
+  databaseURL: "https://coinx-earn-default-rtdb.firebaseio.com",
+  projectId: "coinx-earn",
+  storageBucket: "coinx-earn.firebasestorage.app",
+  messagingSenderId: "205930694817",
+  appId: "1:205930694817:web:b039084e9ea82a73a048e0"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const storage = firebase.storage();
+
+// ============================================================
+// DEVICE ID & USER INIT
+// ============================================================
+let deviceId = localStorage.getItem('deviceId');
+let userData = { balance: 0, referrals: 0, referralCode: '', joinedAt: 0 };
+let taskStates = {};
+let currentProofTaskId = '';
+let currentProofType = '';
+let selectedFile = null;
+let spinPendingCoins = 0;
+let adCallback = null;
+
+function generateDeviceId() {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let id = '';
+  for (let i = 0; i < 10; i++) id += chars.charAt(Math.floor(Math.random() * chars.length));
+  return id;
+}
+
+function initUser() {
+  if (!deviceId) {
+    deviceId = generateDeviceId();
+    localStorage.setItem('deviceId', deviceId);
+  }
+  const userRef = db.ref('users/' + deviceId);
+  userRef.once('value').then(snap => {
+    if (!snap.exists()) {
+      const newUser = {
+        balance: 0,
+        referrals: 0,
+        referralCode: 'CX-' + deviceId,
+        joinedAt: Date.now(),
+        last_spin: 0,
+        extra_spin_used_today: '',
+        ads_watched_for_extra_spin: 0
+      };
+      userRef.set(newUser);
+      userData = newUser;
+    } else {
+      userData = snap.val();
+    }
+    updateUI();
+    loadTaskStates();
+    loadWithdrawHistory();
+  });
+
+  // Real-time listener for user data
+  userRef.on('value', snap => {
+    if (snap.exists()) {
+      userData = snap.val();
+      updateUI();
+    }
+  });
+
+  // Referral code display
+  document.getElementById('refCode').textContent = 'CX-' + deviceId;
+  document.getElementById('refLink').textContent = 'https://t.me/CoinXEarnBot?start=CX-' + deviceId;
+  document.getElementById('profileId').textContent = 'ID: ' + deviceId;
+  document.getElementById('profileAvatar').textContent = deviceId.charAt(0).toUpperCase();
+}
+
+function updateUI() {
+  const bal = userData.balance || 0;
+  const bdt = (bal / 1000).toFixed(2);
+  document.getElementById('homeBalance').textContent = bal.toLocaleString();
+  document.getElementById('homeBDT').textContent = bdt;
+  document.getElementById('profileBalance').textContent = bal.toLocaleString();
+  document.getElementById('refCount').textContent = userData.referrals || 0;
+  document.getElementById('refEarnings').textContent = ((userData.referrals || 0) * 500).toLocaleString();
+  updateVIPStatus();
+  updateSpinState();
+  updateExtraSpinState();
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function switchSection(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('sec-' + name).classList.add('active');
+  document.querySelector(`.nav-item[data-section="${name}"]`).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+function showToast(message, type = 'info', duration = 3000) {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = 'toast ' + type;
+  const icons = { success: 'fa-check-circle', error: 'fa-times-circle', info: 'fa-info-circle', loading: 'fa-spinner fa-spin' };
+  toast.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i> ${message}`;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(-10px)';
+    toast.style.transition = '.3s';
+    setTimeout(() => toast.remove(), 300);
+  }, duration);
+  return toast;
+}
+
+// ============================================================
+// MODALS
+// ============================================================
+function openModal(id) { document.getElementById(id).classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+function openHowToWork() { openModal('howToWorkModal'); }
+function openAboutApp() { openModal('aboutAppModal'); }
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('show'); });
+});
+document.getElementById('proofSheet').addEventListener('click', e => {
+  if (e.target.id === 'proofSheet') e.target.classList.remove('show');
+});
+
+// ============================================================
+// NOTIFICATIONS (Real-time)
+// ============================================================
+function initNotifications() {
+  db.ref('appSettings/notifications').on('value', snap => {
+    const data = snap.val();
+    if (data) {
+      const badge = document.getElementById('notifBadge');
+      const count = data.count || 0;
+      badge.textContent = count;
+      if (count > 0) { badge.classList.add('show'); } else { badge.classList.remove('show'); }
+      document.getElementById('globalMessage').textContent = data.global_message || 'No notifications yet.';
+    }
+  });
+}
+
+function openNotifModal() {
+  openModal('notifModal');
+}
+
+// ============================================================
+// SOCIAL MEDIA TASKS (HOME)
+// ============================================================
+const socialTasks = [
+  { id: 'sm1', name: 'Follow on Instagram', icon: 'fab fa-instagram', color: '#e1306c', coins: 200, link: 'https://instagram.com' },
+  { id: 'sm2', name: 'Subscribe YouTube Channel', icon: 'fab fa-youtube', color: '#ff0000', coins: 300, link: 'https://youtube.com' },
+  { id: 'sm3', name: 'Join Telegram Group', icon: 'fab fa-telegram', color: '#0088cc', coins: 150, link: 'https://t.me' },
+  { id: 'sm4', name: 'Like Facebook Page', icon: 'fab fa-facebook', color: '#1877f2', coins: 200, link: 'https://facebook.com' },
+  { id: 'sm5', name: 'Follow on Twitter/X', icon: 'fab fa-x-twitter', color: '#1da1f2', coins: 250, link: 'https://x.com' },
+  { id: 'sm6', name: 'Join Discord Server', icon: 'fab fa-discord', color: '#5865f2', coins: 180, link: 'https://discord.com' }
+];
+
+function renderSocialTasks() {
+  const container = document.getElementById('socialTasksList');
+  container.innerHTML = '';
+  socialTasks.forEach(task => {
+    const state = taskStates[task.id] || 'available';
+    const isPending = state === 'pending';
+    const div = document.createElement('div');
+    div.className = 'task-card';
+    div.innerHTML = `
+      <div class="task-icon" style="background:${task.color}20;color:${task.color}"><i class="${task.icon}"></i></div>
+      <div class="task-info">
+        <h4>${task.name}</h4>
+        <p class="task-coins">+${task.coins} Coins</p>
+      </div>
+      <div class="task-actions">
+        ${isPending 
+          ? '<button class="btn-sm btn-pending"><i class="fas fa-clock"></i> Pending</button>'
+          : `<button class="btn-sm btn-start" onclick="openTaskLink('${task.link}')"><i class="fas fa-external-link-alt"></i> Start</button>
+             <button class="btn-sm btn-proof" onclick="openProofSheet('${task.id}','social')"><i class="fas fa-camera"></i></button>`
+        }
+      </div>`;
+    container.appendChild(div);
+  });
+}
+
+function openTaskLink(link) {
+  showToast('Opening task...', 'loading', 2000);
+  setTimeout(() => window.open(link, '_blank'), 500);
+}
+
+// ============================================================
+// VIP TASKS
+// ============================================================
+const vipTasks = [
+  { id: 'vip1', name: 'Complete Survey #1', icon: 'fas fa-poll', color: '#f9ca24', coins: 2000, link: 'https://example.com/survey1' },
+  { id: 'vip2', name: 'Download & Register App', icon: 'fas fa-mobile-alt', color: '#6c5ce7', coins: 3500, link: 'https://example.com/app' },
+  { id: 'vip3', name: 'Sign Up for Free Trial', icon: 'fas fa-user-plus', color: '#00b894', coins: 5000, link: 'https://example.com/trial' },
+  { id: 'vip4', name: 'Complete Offer Wall', icon: 'fas fa-clipboard-check', color: '#fd79a8', coins: 4000, link: 'https://example.com/offer' },
+  { id: 'vip5', name: 'Watch & Rate Video', icon: 'fas fa-video', color: '#e17055', coins: 1500, link: 'https://example.com/video' }
+];
+
+function renderVIPTasks() {
+  const container = document.getElementById('vipTasksList');
+  container.innerHTML = '';
+  vipTasks.forEach(task => {
+    const state = taskStates[task.id] || 'available';
+    const isPending = state === 'pending';
+    const div = document.createElement('div');
+    div.className = 'task-card';
+    div.innerHTML = `
+      <div class="task-icon" style="background:${task.color}20;color:${task.color}"><i class="${task.icon}"></i></div>
+      <div class="task-info">
+        <h4>${task.name}</h4>
+        <p class="task-coins">+${task.coins} Coins</p>
+      </div>
+      <div class="task-actions">
+        ${isPending 
+          ? '<button class="btn-sm btn-pending"><i class="fas fa-clock"></i> Pending</button>'
+          : `<button class="btn-sm btn-start" onclick="openTaskLink('${task.link}')"><i class="fas fa-external-link-alt"></i> Start</button>
+             <button class="btn-sm btn-proof" onclick="openProofSheet('${task.id}','vip')"><i class="fas fa-camera"></i></button>`
+        }
+      </div>`;
+    container.appendChild(div);
+  });
+}
+
+function updateVIPStatus() {
+  const refs = userData.referrals || 0;
+  if (refs >= 4) {
+    document.getElementById('vipLockScreen').style.display = 'none';
+    document.getElementById('vipUnlocked').style.display = 'block';
+    renderVIPTasks();
+  } else {
+    document.getElementById('vipLockScreen').style.display = 'flex';
+    document.getElementById('vipUnlocked').style.display = 'none';
+    const pct = Math.min((refs / 4) * 100, 100);
+    document.getElementById('vipProgressFill').style.width = pct + '%';
+    document.getElementById('vipProgressText').textContent = refs + ' / 4 Referrals';
+  }
+}
+
+// ============================================================
+// PROOF UPLOAD (BOTTOM SHEET)
+// ============================================================
+function openProofSheet(taskId, type) {
+  currentProofTaskId = taskId;
+  currentProofType = type;
+  selectedFile = null;
+  document.getElementById('proofFileInput').value = '';
+  document.getElementById('fileName').style.display = 'none';
+  document.getElementById('fileName').textContent = '';
+  document.getElementById('uploadArea').querySelector('p').textContent = 'Tap to select screenshot';
+  document.getElementById('uploadArea').querySelector('i').className = 'fas fa-cloud-upload-alt';
+  document.getElementById('proofSheet').classList.add('show');
+}
+
+function handleFileSelect(e) {
+  const file = e.target.files[0];
+  if (file) {
+    selectedFile = file;
+    document.getElementById('fileName').textContent = file.name;
+    document.getElementById('fileName').style.display = 'block';
+    document.getElementById('uploadArea').querySelector('p').textContent = 'File selected!';
+    document.getElementById('uploadArea').querySelector('i').className = 'fas fa-check-circle';
+    document.getElementById('uploadArea').querySelector('i').style.color = 'var(--accent)';
+  }
+}
+
+function submitProof() {
+  if (!selectedFile) {
+    showToast('Please select a screenshot first!', 'error');
+    return;
+  }
+  const loadingToast = showToast('Uploading proof...', 'loading', 10000);
+  const btn = document.getElementById('submitProofBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+
+  const storagePath = `task_proofs/${deviceId}/${currentProofTaskId}.jpg`;
+  const storageRef = storage.ref(storagePath);
+  
+  storageRef.put(selectedFile).then(() => {
+    // Save task state in Firebase
+    db.ref(`users/${deviceId}/taskStates/${currentProofTaskId}`).set('pending');
+    taskStates[currentProofTaskId] = 'pending';
+    
+    // Also save the proof record
+    db.ref(`proofs/${deviceId}/${currentProofTaskId}`).set({
+      taskId: currentProofTaskId,
+      type: currentProofType,
+      status: 'pending',
+      timestamp: Date.now()
+    });
+
+    setTimeout(() => {
+      loadingToast.remove();
+      showToast('Proof submitted! Balance will be added after review.', 'success', 4000);
+      document.getElementById('proofSheet').classList.remove('show');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-check"></i> Submit Proof';
+      renderSocialTasks();
+      renderVIPTasks();
+    }, 3000);
+  }).catch(err => {
+    loadingToast.remove();
+    showToast('Upload failed: ' + err.message, 'error');
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-check"></i> Submit Proof';
+  });
+}
+
+function loadTaskStates() {
+  db.ref(`users/${deviceId}/taskStates`).on('value', snap => {
+    taskStates = snap.val() || {};
+    renderSocialTasks();
+    renderVIPTasks();
+  });
+}
+
+// ============================================================
+// AD TASKS (FREE TASK)
+// ============================================================
+const adSlots = [
+  { id: 'ad1', name: 'Watch Rewarded Video', icon: 'fas fa-play-circle', coins: 100 },
+  { id: 'ad2', name: 'Watch Bonus Ad', icon: 'fas fa-film', coins: 150 }
+];
+
+let adCooldowns = {};
+
+function renderAdSlots() {
+  const container = document.getElementById('adSlotsContainer');
+  container.innerHTML = '';
+  adSlots.forEach(ad => {
+    const cooldownEnd = adCooldowns[ad.id] || 0;
+    const now = Date.now();
+    const inCooldown = cooldownEnd > now;
+
+    const div = document.createElement('div');
+    div.className = 'ad-slot' + (inCooldown ? '' : '');
+    div.id = 'adSlot_' + ad.id;
+    if (!inCooldown) {
+      div.onclick = () => watchAd(ad.id, ad.coins);
+    }
+    div.innerHTML = `
+      <div class="ad-icon"><i class="${ad.icon}"></i></div>
+      <h4>${ad.name}</h4>
+      <p>Watch a short video to earn coins</p>
+      <div class="ad-reward">+${ad.coins} Coins</div>
+      <div class="ad-timer"></div>
+      ${inCooldown ? `<div class="ad-cooldown" id="adCooldown_${ad.id}">Cooldown: --:--</div>` : ''}
+    `;
+    container.appendChild(div);
+    if (inCooldown) startAdCooldownTimer(ad.id, cooldownEnd);
+  });
+}
+
+function watchAd(adId, coins) {
+  showSimulatedAd(5, () => {
+    // Add coins
+    const newBal = (userData.balance || 0) + coins;
+    db.ref(`users/${deviceId}/balance`).set(newBal);
+    showToast(`+${coins} coins earned!`, 'success');
+    // Start 2 min cooldown
+    const cooldownEnd = Date.now() + 120000;
+    adCooldowns[adId] = cooldownEnd;
+    localStorage.setItem('adCooldowns', JSON.stringify(adCooldowns));
+    renderAdSlots();
+  });
+}
+
+function startAdCooldownTimer(adId, endTime) {
+  const el = document.getElementById('adCooldown_' + adId);
+  const slot = document.getElementById('adSlot_' + adId);
+  if (!el || !slot) return;
+  slot.style.opacity = '0.5';
+  slot.style.pointerEvents = 'none';
+  const interval = setInterval(() => {
+    const remaining = endTime - Date.now();
+    if (remaining <= 0) {
+      clearInterval(interval);
+      delete adCooldowns[adId];
+      localStorage.setItem('adCooldowns', JSON.stringify(adCooldowns));
+      renderAdSlots();
+      return;
+    }
+    const mins = Math.floor(remaining / 60000);
+    const secs = Math.floor((remaining % 60000) / 1000);
+    el.textContent = `Cooldown: ${mins}:${secs.toString().padStart(2,'0')}`;
+  }, 1000);
+}
+
+function loadAdCooldowns() {
+  try {
+    adCooldowns = JSON.parse(localStorage.getItem('adCooldowns') || '{}');
+  } catch(e) { adCooldowns = {}; }
+}
+
+// ============================================================
+// SIMULATED AD SYSTEM
+// ============================================================
+function showSimulatedAd(seconds, callback) {
+  adCallback = callback;
+  const overlay = document.getElementById('adOverlay');
+  const countdownEl = document.getElementById('adCountdownText');
+  const progressFill = document.getElementById('adProgressFill');
+  const skipBtn = document.getElementById('adSkipBtn');
+
+  overlay.classList.add('show');
+  skipBtn.style.display = 'none';
+  progressFill.style.width = '0%';
+  
+  let remaining = seconds;
+  countdownEl.textContent = remaining;
+
+  const interval = setInterval(() => {
+    remaining--;
+    countdownEl.textContent = remaining;
+    progressFill.style.width = ((seconds - remaining) / seconds * 100) + '%';
+    if (remaining <= 0) {
+      clearInterval(interval);
+      countdownEl.textContent = '✓';
+      progressFill.style.width = '100%';
+      skipBtn.style.display = 'block';
+      skipBtn.textContent = 'Close Ad';
+    }
+  }, 1000);
+}
+
+function closeAd() {
+  document.getElementById('adOverlay').classList.remove('show');
+  if (adCallback) {
+    adCallback();
+    adCallback = null;
+  }
+}
+
+// ============================================================
+// LUCKY SPIN WHEEL
+// ============================================================
+const spinSegments = [
+  { label: '50', coins: 50, color: '#ff6b6b' },
+  { label: '100', coins: 100, color: '#ffa502' },
+  { label: '200', coins: 200, color: '#2ed573' },
+  { label: '20', coins: 20, color: '#1e90ff' },
+  { label: '500', coins: 500, color: '#a855f7' },
+  { label: '150', coins: 150, color: '#ff4757' },
+  { label: '80', coins: 80, color: '#00d4aa' },
+  { label: '300', coins: 300, color: '#f9ca24' }
+];
+
+let isSpinning = false;
+
+function drawWheel() {
+  const canvas = document.getElementById('wheelCanvas');
+  const ctx = canvas.getContext('2d');
+  const cx = 140, cy = 140, r = 130;
+  const segments = spinSegments.length;
+  const arc = (2 * Math.PI) / segments;
+
+  ctx.clearRect(0, 0, 280, 280);
+
+  for (let i = 0; i < segments; i++) {
+    const startAngle = i * arc - Math.PI / 2;
+    const endAngle = startAngle + arc;
+
+    // Draw segment
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, startAngle, endAngle);
+    ctx.closePath();
+    ctx.fillStyle = spinSegments[i].color;
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Draw text
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(startAngle + arc / 2);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.shadowColor = 'rgba(0,0,0,0.5)';
+    ctx.shadowBlur = 3;
+    ctx.fillText(spinSegments[i].label, r * 0.65, 5);
+    ctx.shadowBlur = 0;
+    ctx.restore();
+  }
+
+  // Center circle
+  ctx.beginPath();
+  ctx.arc(cx, cy, 22, 0, 2 * Math.PI);
+  ctx.fillStyle = '#1a1d2e';
+  ctx.fill();
+  ctx.strokeStyle = 'var(--accent)';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 10px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('SPIN', cx, cy + 4);
+}
+
+function updateSpinState() {
+  const lastSpin = userData.last_spin || 0;
+  const now = Date.now();
+  const nextSpin = lastSpin + 86400000; // 24 hours
+  const btn = document.getElementById('spinBtn');
+  const cooldownEl = document.getElementById('spinCooldown');
+
+  // Check if extra spin is available
+  const extraAvailable = checkExtraSpinAvailable();
+
+  if (now < nextSpin && !extraAvailable) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-clock"></i> Wait...';
+    startSpinCooldownTimer(nextSpin);
+  } else {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-sync-alt"></i> SPIN NOW';
+    cooldownEl.textContent = '';
+    if (extraAvailable && now < nextSpin) {
+      cooldownEl.textContent = '🎁 Extra spin available!';
+      cooldownEl.style.color = 'var(--purple)';
+    }
+  }
+}
+
+function startSpinCooldownTimer(endTime) {
+  const el = document.getElementById('spinCooldown');
+  const btn = document.getElementById('spinBtn');
+  clearInterval(window._spinTimer);
+  window._spinTimer = setInterval(() => {
+    const remaining = endTime - Date.now();
+    if (remaining <= 0) {
+      clearInterval(window._spinTimer);
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-sync-alt"></i> SPIN NOW';
+      el.textContent = '';
+      return;
+    }
+    const h = Math.floor(remaining / 3600000);
+    const m = Math.floor((remaining % 3600000) / 60000);
+    const s = Math.floor((remaining % 60000) / 1000);
+    el.textContent = `Next spin in: ${h}h ${m}m ${s}s`;
+    el.style.color = 'var(--text2)';
+  }, 1000);
+}
+
+function startSpin() {
+  if (isSpinning) return;
+  const lastSpin = userData.last_spin || 0;
+  const now = Date.now();
+  const nextSpin = lastSpin + 86400000;
+  const extraAvailable = checkExtraSpinAvailable();
+
+  if (now < nextSpin && !extraAvailable) {
+    showToast('Spin on cooldown! Try again later.', 'error');
+    return;
+  }
+
+  isSpinning = true;
+  const btn = document.getElementById('spinBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Spinning...';
+
+  // Random result
+  const resultIndex = Math.floor(Math.random() * spinSegments.length);
+  const coins = spinSegments[resultIndex].coins;
+  spinPendingCoins = coins;
+
+  // Calculate rotation
+  const segmentAngle = 360 / spinSegments.length;
+  // We want the pointer (top) to land on the result segment
+  // Segment i starts at i*segmentAngle, center is i*segmentAngle + segmentAngle/2
+  const targetAngle = resultIndex * segmentAngle + segmentAngle / 2;
+  // The wheel rotates clockwise. The pointer is at top (0 degrees).
+  // We want the segment's center to end up at the top after rotation.
+  // Total rotation = multiple full spins + (360 - targetAngle) so the segment is at top
+  const totalRotation = 360 * 6 + (360 - targetAngle);
+
+  const canvas = document.getElementById('wheelCanvas');
+  canvas.style.setProperty('--spin-deg', totalRotation + 'deg');
+  canvas.style.setProperty('--spin-duration', '4s');
+  canvas.classList.remove('spinning');
+  // Force reflow
+  void canvas.offsetWidth;
+  canvas.classList.add('spinning');
+
+  setTimeout(() => {
+    isSpinning = false;
+    canvas.classList.remove('spinning');
+    canvas.style.transform = `rotate(${totalRotation % 360}deg)`;
+    
+    // Use extra spin if normal cooldown is active
+    if (now < nextSpin && extraAvailable) {
+      useExtraSpin();
+    } else {
+      // Save last_spin timestamp
+      db.ref(`users/${deviceId}/last_spin`).set(Date.now());
+    }
+
+    // Show result modal - coins NOT added yet
+    document.getElementById('spinResultCoins').textContent = '+' + coins + ' Coins';
+    document.getElementById('claimSpinBtn').disabled = false;
+    document.getElementById('claimSpinBtn').innerHTML = '<i class="fas fa-play"></i> Watch Ad & Claim';
+    openModal('spinResultModal');
+    updateSpinState();
+  }, 4200);
+}
+
+function watchSpinRewardAd() {
+  closeModal('spinResultModal');
+  showSimulatedAd(5, () => {
+    const newBal = (userData.balance || 0) + spinPendingCoins;
+    db.ref(`users/${deviceId}/balance`).set(newBal);
+    showToast(`+${spinPendingCoins} coins claimed!`, 'success');
+    spinPendingCoins = 0;
+  });
+}
+
+// ============================================================
+// EXTRA SPIN
+// ============================================================
+function checkExtraSpinAvailable() {
+  const today = new Date().toISOString().slice(0, 10);
+  const usedToday = userData.extra_spin_used_today === today;
+  if (usedToday) return false;
+  const adsWatched = userData.ads_watched_for_extra_spin || 0;
+  return adsWatched >= 2;
+}
+
+function updateExtraSpinState() {
+  const today = new Date().toISOString().slice(0, 10);
+  const usedToday = userData.extra_spin_used_today === today;
+  const adsWatched = userData.ads_watched_for_extra_spin || 0;
+
+  // Update dots
+  for (let i = 0; i < 2; i++) {
+    const dot = document.getElementById('extraDot' + i);
+    if (adsWatched > i) { dot.classList.add('filled'); dot.innerHTML = '<i class="fas fa-check" style="font-size:12px"></i>'; }
+    else { dot.classList.remove('filled'); dot.textContent = (i + 1); }
+  }
+
+  const btn = document.getElementById('extraAdBtn');
+  if (usedToday) {
+    btn.disabled = true;
+    btn.textContent = 'Used Today';
+  } else if (adsWatched >= 2) {
+    btn.disabled = true;
+    btn.textContent = 'Extra Spin Ready!';
+    btn.style.background = 'var(--accent)';
+    btn.style.color = '#000';
+  } else {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-play"></i> Watch Ad (' + adsWatched + '/2)';
+    btn.style.background = '';
+    btn.style.color = '';
+  }
+}
+
+function watchExtraAd() {
+  const adsWatched = userData.ads_watched_for_extra_spin || 0;
+  if (adsWatched >= 2) {
+    showToast('Extra spin already unlocked!', 'info');
+    return;
+  }
+  showSimulatedAd(5, () => {
+    const newCount = adsWatched + 1;
+    db.ref(`users/${deviceId}/ads_watched_for_extra_spin`).set(newCount);
+    showToast(`Ad watched! (${newCount}/2)`, 'success');
+    if (newCount >= 2) {
+      showToast('🎉 Extra spin unlocked! Go spin now!', 'success', 4000);
+    }
+  });
+}
+
+function useExtraSpin() {
+  const today = new Date().toISOString().slice(0, 10);
+  db.ref(`users/${deviceId}`).update({
+    extra_spin_used_today: today,
+    ads_watched_for_extra_spin: 0,
+    last_spin: Date.now()
+  });
+}
+
+// ============================================================
+// REFERRAL
+// ============================================================
+function copyRefLink() {
+  const link = document.getElementById('refLink').textContent;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(link).then(() => showToast('Referral link copied!', 'success'));
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = link;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('Referral link copied!', 'success');
+  }
+}
+
+function renderLeaderboard() {
+  const container = document.getElementById('leaderboardList');
+  // Dummy leaderboard data
+  const leaders = [
+    { name: 'CryptoKing', avatar: '👑', earnings: 125000, refs: 48 },
+    { name: 'EarnMaster', avatar: '🚀', earnings: 98500, refs: 35 },
+    { name: 'CoinHunter', avatar: '💎', earnings: 76200, refs: 28 },
+    { name: 'TaskPro', avatar: '⚡', earnings: 54800, refs: 21 },
+    { name: 'SpinWinner', avatar: '🎯', earnings: 42300, refs: 15 }
+  ];
+  const rankClasses = ['gold','silver','bronze','normal','normal'];
+  container.innerHTML = '';
+  leaders.forEach((l, i) => {
+    const div = document.createElement('div');
+    div.className = 'leaderboard-item';
+    div.innerHTML = `
+      <div class="lb-rank ${rankClasses[i]}">${i + 1}</div>
+      <div class="lb-avatar">${l.avatar}</div>
+      <div class="lb-info"><h4>${l.name}</h4><p>${l.refs} referrals</p></div>
+      <div class="lb-earnings"><div class="coins">${l.earnings.toLocaleString()}</div><div class="refs">coins</div></div>`;
+    container.appendChild(div);
+  });
+}
+
+// ============================================================
+// WITHDRAWAL
+// ============================================================
+function processWithdraw() {
+  const method = document.getElementById('withdrawMethod').value;
+  const amount = parseInt(document.getElementById('withdrawAmount').value);
+  const account = document.getElementById('withdrawAccount').value.trim();
+
+  if (!method) { showToast('Please select a payment method!', 'error'); return; }
+  if (!amount || isNaN(amount) || amount <= 0) { showToast('Please enter a valid coin amount!', 'error'); return; }
+  if (!account) { showToast('Please enter your account number!', 'error'); return; }
+  if (account.length > 11) { showToast('Account number max 11 digits!', 'error'); return; }
+
+  if (method === 'Mobile Recharge' && amount < 25000) {
+    showToast('Minimum for Recharge: 25,000 coins!', 'error'); return;
+  }
+  if ((method === 'Bkash' || method === 'Nagad') && amount < 55000) {
+    showToast('Minimum for Bkash/Nagad: 55,000 coins!', 'error'); return;
+  }
+
+  const currentBal = userData.balance || 0;
+  if (amount > currentBal) { showToast('Insufficient balance!', 'error'); return; }
+
+  // Deduct balance
+  const newBal = currentBal - amount;
+  db.ref(`users/${deviceId}/balance`).set(newBal);
+
+  // Push withdrawal record
+  const withdrawRef = db.ref('withdrawals').push();
+  withdrawRef.set({
+    deviceId: deviceId,
+    method: method,
+    amount: amount,
+    account: account,
+    status: 'Pending',
+    timestamp: Date.now()
+  });
+
+  // Also save under user's withdrawals
+  db.ref(`users/${deviceId}/withdrawals/${withdrawRef.key}`).set({
+    method: method,
+    amount: amount,
+    account: account,
+    status: 'Pending',
+    timestamp: Date.now()
+  });
+
+  showToast('Withdrawal request submitted!', 'success');
+  document.getElementById('withdrawMethod').value = '';
+  document.getElementById('withdrawAmount').value = '';
+  document.getElementById('withdrawAccount').value = '';
+  loadWithdrawHistory();
+
+  // Send Telegram notification (optional)
+  sendTelegramNotification(`💰 New Withdrawal Request!\n\nUser: ${deviceId}\nMethod: ${method}\nCoins: ${amount}\nAccount: ${account}\nBDT: ${(amount/1000).toFixed(2)}`);
+}
+
+function loadWithdrawHistory() {
+  const container = document.getElementById('withdrawHistory');
+  db.ref(`users/${deviceId}/withdrawals`).orderByChild('timestamp').on('value', snap => {
+    container.innerHTML = '';
+    const items = [];
+    snap.forEach(child => { items.push(child.val()); });
+    items.reverse();
+    if (items.length === 0) {
+      container.innerHTML = '<p style="text-align:center;color:var(--text2);font-size:13px;padding:20px">No withdrawal history yet.</p>';
+      return;
+    }
+    items.forEach(item => {
+      const date = new Date(item.timestamp).toLocaleDateString('en-US', { day:'numeric', month:'short', year:'numeric' });
+      const statusClass = item.status === 'Paid' ? 'status-paid' : item.status === 'Rejected' ? 'status-rejected' : 'status-pending';
+      const div = document.createElement('div');
+      div.className = 'history-item';
+      div.innerHTML = `
+        <div class="history-left">
+          <div class="method">${item.method}</div>
+          <div class="date">${date} • ${item.account}</div>
+        </div>
+        <div class="history-right">
+          <div class="amount" style="color:var(--danger)">-${item.amount.toLocaleString()}</div>
+          <span class="status ${statusClass}">${item.status}</span>
+        </div>`;
+      container.appendChild(div);
+    });
+  });
+}
+
+// ============================================================
+// TELEGRAM NOTIFICATION (OPTIONAL)
+// ============================================================
+function sendTelegramNotification(message) {
+  if (TELEGRAM_BOT_TOKEN === '8788409669:AAHZPe7DZwdYXeb-z1jlf3PcExTS9RCSBXU' || TELEGRAM_CHAT_ID === '6712107235') return;
+  fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: message, parse_mode: 'HTML' })
+  }).catch(() => {});
+}
+
+// ============================================================
+// INITIALIZATION
+// ============================================================
+function init() {
+  loadAdCooldowns();
+  initUser();
+  initNotifications();
+  drawWheel();
+  renderSocialTasks();
+  renderAdSlots();
+  renderLeaderboard();
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
