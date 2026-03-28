@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>CoinX Earn</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
@@ -1321,8 +1322,30 @@ function init() {
   renderAdSlots();
   renderLeaderboard();
 }
-
 document.addEventListener('DOMContentLoaded', init);
+// টেলিগ্রাম ডাটা লোড করা
+const tg = window.Telegram.WebApp;
+tg.expand(); // অ্যাপটি বড় স্ক্রিনে ওপেন হবে
+
+// ইউজারের তথ্য বের করা
+const user = tg.initDataUnsafe.user;
+
+if (user) {
+    // ইউজারের নাম সেট করা (যদি আপনার HTML-এ id="user-name" থাকে)
+    const fullName = user.first_name + (user.last_name ? " " + user.last_name : "");
+    
+    // আপনার প্রোফাইল সেকশনে নাম ও আইডি দেখানোর জন্য:
+    // আমি ধরে নিচ্ছি আপনার প্রোফাইল সেকশনের এলিমেন্টগুলো এভাবে কাজ করবে:
+    const profileName = document.querySelector('.profile-header h2'); // আপনার কোড অনুযায়ী
+    const profileId = document.querySelector('.profile-id');
+
+    if(profileName) profileName.innerText = fullName;
+    if(profileId) profileId.innerText = "ID: " + user.id;
+
+    // ইউজারের আইডি-কে অ্যাপের মেইন আইডি হিসেবে ব্যবহার করা
+    const appUserId = user.id; 
+    console.log("Logged in as:", appUserId);
+}
 </script>
 </body>
 </html>
