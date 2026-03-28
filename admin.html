@@ -3,63 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CoinX - Super Admin</title>
+    <title>CoinX - Global Controller</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #0f1118; color: #e8e8e8; padding: 20px; }
-        .card { background: #1a1d2e; padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #2a2e45; }
-        h2, h3 { color: #00d4aa; margin-top: 0; }
-        input, select, button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 8px; border: 1px solid #2a2e45; outline: none; box-sizing: border-box; }
-        input { background: #141728; color: white; }
-        button { background: #00d4aa; color: #000; font-weight: bold; cursor: pointer; border: none; transition: 0.2s; }
-        button:active { transform: scale(0.98); }
-        .task-item { background: #232740; padding: 15px; border-radius: 10px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; }
-        .btn-delete { background: #ff4757; color: white; width: auto; padding: 5px 15px; font-size: 12px; }
-        #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f1118; display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        :root { --bg: #0b0e14; --card: #151921; --accent: #00ffa3; --danger: #ff4757; --warning: #ffa502; --text: #f0f0f0; --border: #242b38; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 50px; }
+        .header { background: var(--card); padding: 20px; text-align: center; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+        .container { max-width: 900px; margin: 0 auto; padding: 15px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
+        .stat-card { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid var(--border); text-align: center; }
+        .stat-card h4 { margin: 0; font-size: 12px; color: #888; }
+        .stat-card div { font-size: 20px; font-weight: bold; color: var(--accent); margin-top: 5px; }
+        .card { background: var(--card); padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid var(--border); }
+        h3 { margin-top: 0; color: var(--accent); font-size: 16px; display: flex; align-items: center; justify-content: space-between; }
+        input, select, textarea, button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 8px; border: 1px solid var(--border); outline: none; box-sizing: border-box; background: #0b0e14; color: white; }
+        button { background: var(--accent); color: black; font-weight: bold; border: none; cursor: pointer; text-transform: uppercase; }
+        .list-item { background: #1c222d; padding: 12px; border-radius: 10px; margin-top: 10px; font-size: 13px; line-height: 1.5; border-left: 4px solid var(--accent); }
+        .actions { display: flex; gap: 5px; margin-top: 10px; }
+        .btn-sm { padding: 6px 12px; border-radius: 5px; font-size: 11px; width: auto; }
+        .bg-red { background: var(--danger); color: white; }
+        .bg-orange { background: var(--warning); color: black; }
+        .tab-bar { display: flex; overflow-x: auto; gap: 10px; margin-bottom: 15px; padding: 5px; background: var(--card); }
+        .tab { padding: 8px 16px; border-radius: 20px; cursor: pointer; white-space: nowrap; font-size: 13px; border: 1px solid var(--border); }
+        .tab.active { background: var(--accent); color: black; font-weight: bold; }
+        #login-screen { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 1000; }
     </style>
 </head>
 <body>
 
 <div id="login-screen">
-    <div class="card" style="width: 320px; text-align: center;">
-        <h3>Admin Access</h3>
-        <input type="password" id="admin-pass" placeholder="Enter Admin Password">
-        <button onclick="checkPass()">Login Now</button>
+    <div class="card" style="width: 300px; text-align: center;">
+        <h2>🔐 ADMIN CORE</h2>
+        <input type="password" id="admin-pass" placeholder="Master Password">
+        <button onclick="checkPass()">ENTER CONTROL ROOM</button>
     </div>
 </div>
 
-<h2>🚀 CoinX Control Center</h2>
-
-<div class="card">
-    <h3>📺 Ads Slot Management</h3>
-    <label>Slot 1 Link (Monetag):</label>
-    <input type="text" id="ad1-link" placeholder="Paste Ad 1 Link">
-    <button onclick="saveAds(1)">Update Slot 1</button>
-    
-    <div style="margin-top: 20px;"></div>
-    
-    <label>Slot 2 Link (Monetag):</label>
-    <input type="text" id="ad2-link" placeholder="Paste Ad 2 Link">
-    <button onclick="saveAds(2)" style="background: #3742fa; color: white;">Update Slot 2</button>
+<div class="header">
+    <h2 style="margin:0; color:var(--accent);">CoinX Master Panel</h2>
 </div>
 
-<div class="card">
-    <h3>🌟 Manage VIP Tasks</h3>
-    <input type="text" id="task-title" placeholder="Task Title (e.g. Subscribe Youtube)">
-    <input type="number" id="task-reward" placeholder="Reward Coins (e.g. 50)">
-    <input type="text" id="task-link" placeholder="Task Link (Youtube/Telegram)">
-    <button onclick="addTask()">Add New VIP Task</button>
-    
-    <hr style="margin-top: 20px; border: 0.5px solid #2a2e45;">
-    <div id="task-list-container">
-        <h4>Current Tasks:</h4>
-        <div id="task-list">Loading tasks...</div>
+<div class="container">
+    <div class="stats-grid">
+        <div class="stat-card"><h4>Total Users</h4><div id="total-users">0</div></div>
+        <div class="stat-card"><h4>Total Ads Viewed</h4><div id="total-ads">0</div></div>
+        <div class="stat-card"><h4>Total Spins</h4><div id="total-spins">0</div></div>
+        <div class="stat-card"><h4>Total Balance</h4><div id="total-balance">0</div></div>
+    </div>
+
+    <div class="tab-bar">
+        <div class="tab active" onclick="showTab('users')">Users</div>
+        <div class="tab" onclick="showTab('ads')">Ads & Notice</div>
+        <div class="tab" onclick="showTab('vip')">VIP Tasks</div>
+        <div class="tab" onclick="showTab('withdraw')">Withdraws</div>
+    </div>
+
+    <div id="tab-users" class="tab-content">
+        <div class="card">
+            <h3>👤 User Management (Live)</h3>
+            <div id="user-list">Loading...</div>
+        </div>
+    </div>
+
+    <div id="tab-ads" class="tab-content" style="display:none">
+        <div class="card">
+            <h3>📢 News/Notice Board</h3>
+            <textarea id="notice-msg" rows="3" placeholder="Write notice for all users..."></textarea>
+            <button onclick="saveData('settings/notice', 'notice-msg')">Update Notice</button>
+        </div>
+        <div class="card">
+            <h3>📺 Ad Slots Control</h3>
+            <div id="ads-container"></div>
+            <button onclick="addAdSlot()" style="background:#3742fa; color:white; margin-top:15px">+ Create New Ad Slot</button>
+        </div>
+    </div>
+
+    <div id="tab-vip" class="tab-content" style="display:none">
+        <div class="card">
+            <h3>🌟 Add VIP Task</h3>
+            <input type="text" id="v-title" placeholder="Task Name">
+            <input type="text" id="v-link" placeholder="Task URL">
+            <input type="number" id="v-reward" placeholder="Coins Reward">
+            <button onclick="addVIP()">Add VIP Task</button>
+        </div>
+        <div id="vip-list"></div>
+    </div>
+
+    <div id="tab-withdraw" class="tab-content" style="display:none">
+        <div class="card">
+            <h3>💰 Money Requests</h3>
+            <div id="withdraw-list">No requests.</div>
+        </div>
     </div>
 </div>
 
 <script>
-    // আপনার দেওয়া Firebase Config
     const firebaseConfig = {
         apiKey: "AIzaSyA99YS1p8wBXnd2tnS3_FA_dKjwSf59-hY",
         authDomain: "coinx-earn.firebaseapp.com",
@@ -76,64 +115,102 @@
     function checkPass() {
         if(document.getElementById('admin-pass').value === "123456") {
             document.getElementById('login-screen').style.display = 'none';
-        } else { alert("Wrong Password!"); }
+        } else { alert("Access Denied"); }
     }
 
-    // ADS SAVE
-    function saveAds(slot) {
-        const link = document.getElementById('ad'+slot+'-link').value;
-        if(link) {
-            db.ref("settings/ads/slot"+slot).set(link)
-            .then(() => alert("Ad Slot "+slot+" Updated!"));
-        }
+    function showTab(id) {
+        document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.getElementById('tab-'+id).style.display = 'block';
+        event.currentTarget.classList.add('active');
     }
 
-    // FETCH CURRENT ADS
-    db.ref("settings/ads").on("value", (snap) => {
-        const data = snap.val();
-        if(data) {
-            if(data.slot1) document.getElementById('ad1-link').value = data.slot1;
-            if(data.slot2) document.getElementById('ad2-link').value = data.slot2;
-        }
-    });
+    // --- GLOBAL STATS LOGIC ---
+    db.ref("users").on("value", snap => {
+        let uCount = 0, aCount = 0, sCount = 0, bCount = 0;
+        let uList = "";
+        snap.forEach(child => {
+            const u = child.val();
+            uCount++;
+            aCount += (u.adsWatched || 0);
+            sCount += (u.spinsDone || 0);
+            bCount += (u.balance || 0);
 
-    // ADD TASK
-    function addTask() {
-        const title = document.getElementById('task-title').value;
-        const reward = document.getElementById('task-reward').value;
-        const link = document.getElementById('task-link').value;
-
-        if(title && reward && link) {
-            const newTaskRef = db.ref("vip_tasks").push();
-            newTaskRef.set({ title, reward, link })
-            .then(() => {
-                alert("VIP Task Added!");
-                document.getElementById('task-title').value = "";
-                document.getElementById('task-reward').value = "";
-                document.getElementById('task-link').value = "";
-            });
-        }
-    }
-
-    // LOAD & DELETE TASKS
-    db.ref("vip_tasks").on("value", (snap) => {
-        const tasks = snap.val();
-        let html = "";
-        for(let id in tasks) {
-            html += `<div class="task-item">
-                <div>
-                    <strong>${tasks[id].title}</strong><br>
-                    <small style="color: #00d4aa;">${tasks[id].reward} Coins</small>
+            uList += `<div class="list-item" style="border-left-color: ${u.status === 'blocked' ? '#ff4757' : '#00ffa3'}">
+                <b>${u.name || 'User'}</b> (ID: ${child.key})<br>
+                📍 IP: ${u.lastIP || 'Unknown'}<br>
+                💰 Balance: ${u.balance || 0} | 📺 Ads: ${u.adsWatched || 0} | 🎡 Spin: ${u.spinsDone || 0}<br>
+                <div class="actions">
+                    <button class="btn-sm bg-orange" onclick="updateUser('${child.key}', 'status', 'blocked')">Block</button>
+                    <button class="btn-sm" onclick="updateUser('${child.key}', 'status', 'active')">Unblock</button>
+                    <button class="btn-sm bg-red" onclick="deleteUser('${child.key}')">Delete</button>
                 </div>
-                <button class="btn-delete" onclick="deleteTask('${id}')">Delete</button>
             </div>`;
-        }
-        document.getElementById('task-list').innerHTML = html || "No tasks available.";
+        });
+        document.getElementById('total-users').innerText = uCount;
+        document.getElementById('total-ads').innerText = aCount;
+        document.getElementById('total-spins').innerText = sCount;
+        document.getElementById('total-balance').innerText = bCount;
+        document.getElementById('user-list').innerHTML = uList;
     });
 
-    function deleteTask(id) {
-        if(confirm("Delete this task?")) {
-            db.ref("vip_tasks/"+id).remove();
+    // --- AD SLOTS LOGIC ---
+    function addAdSlot() {
+        const id = Date.now();
+        db.ref("settings/ads/"+id).set({ name: "New Slot", link: "", reward: 10 });
+    }
+
+    db.ref("settings/ads").on("value", snap => {
+        let html = "";
+        snap.forEach(child => {
+            html += `<div class="list-item">
+                <input type="text" value="${child.val().link}" placeholder="Monetag Link" onchange="db.ref('settings/ads/${child.key}/link').set(this.value)">
+                <div class="actions">
+                    <button class="btn-sm bg-red" onclick="db.ref('settings/ads/${child.key}').remove()">Remove Slot</button>
+                </div>
+            </div>`;
+        });
+        document.getElementById('ads-container').innerHTML = html;
+    });
+
+    // --- WITHDRAW LOGIC ---
+    db.ref("withdraws").on("value", snap => {
+        let html = "";
+        snap.forEach(child => {
+            const w = child.val();
+            html += `<div class="list-item">
+                <b>${w.method}</b> - ${w.number}<br>Amount: ${w.amount} | User: ${w.userName || 'Unknown'}<br>
+                <div class="actions">
+                    <button class="btn-sm" style="background:#2ed573" onclick="handleWithdraw('${child.key}', 'Approved')">Approve</button>
+                    <button class="btn-sm bg-red" onclick="handleWithdraw('${child.key}', 'Rejected')">Reject</button>
+                </div>
+            </div>`;
+        });
+        document.getElementById('withdraw-list').innerHTML = html || "No pending requests.";
+    });
+
+    // --- HELPER FUNCTIONS ---
+    function saveData(path, inputId) {
+        db.ref(path).set(document.getElementById(inputId).value).then(() => alert("Updated!"));
+    }
+
+    function updateUser(id, key, val) {
+        db.ref("users/"+id+"/"+key).set(val);
+    }
+
+    function handleWithdraw(id, status) {
+        if(confirm(status + " this request?")) {
+            db.ref("withdraw_history/"+id).set({status: status, time: Date.now()});
+            db.ref("withdraws/"+id).remove();
+        }
+    }
+
+    function addVIP() {
+        const title = document.getElementById('v-title').value;
+        const link = document.getElementById('v-link').value;
+        const reward = document.getElementById('v-reward').value;
+        if(title && link && reward) {
+            db.ref("vip_tasks").push({title, link, reward}).then(() => alert("VIP Task Added!"));
         }
     }
 </script>
