@@ -1346,6 +1346,81 @@ if (user) {
     const appUserId = user.id; 
     console.log("Logged in as:", appUserId);
 }
+  // ১. ফায়ারবেস থেকে অ্যাড লিঙ্ক এবং নোটিশ পড়া
+db.ref("settings").on("value", (snap) => {
+    const settings = snap.val();
+    if (settings) {
+        // নোটিশ আপডেট (যদি আপনার HTML-এ id="app-notice" থাকে)
+        const noticeEl = document.getElementById('app-notice');
+        if(noticeEl && settings.notice) noticeEl.innerText = settings.notice;
+
+        // অ্যাড স্লটগুলো লোড করা
+        const adContainer = document.getElementById('ad-slots-container'); // আপনার HTML অনুযায়ী
+        if(adContainer && settings.ads) {
+            let adHtml = "";
+            Object.keys(settings.ads).forEach(key => {
+                const ad = settings.ads[key];
+                adHtml += `
+                    <div class="ad-slot" onclick="watchAd('${ad.link}', '${key}')">
+                        <div class="ad-icon"><i class="fas fa-play-circle"></i></div>
+                        <h4>${ad.name || 'Watch Ad'}</h4>
+                        <div class="ad-reward">+${ad.reward || 10} Coins</div>
+                    </div>`;
+            });
+            adContainer.innerHTML = adHtml;
+        }
+    }
+});
+
+// ২. VIP Tasks লোড করা (অ্যাডমিন থেকে যা দিবেন তাই আসবে)
+db.ref("vip_tasks").on("value", (snap) => {
+    const tasks = snap.val();
+    const taskContainer = document.getElementById('vip-task-list');
+    if(taskContainer) {
+        let taskHtml = "";
+        for(let id in tasks) {
+            taskHtml += `
+                <div class="task-card">
+                    <div class="task-info">
+                        <h4>${tasks[id].title}</h4>
+                        <p>Reward: ${tasks[id].reward} Coins</p>
+                    </div>
+                    <button class="btn-sm btn-start" onclick="window.open('${tasks[id].link}')">Start</button>
+                </div>`;
+        }
+        taskContainer.innerHTML = taskHtml || "<p>No tasks available</p>";
+    }
+});
+
+// ৩. ইউজার ডাটা ট্র্যাকিং (IP, Ads, Spins)
+function trackUserStats(type) {
+    const userRef = db.ref("users/" + tg.initDataUnsafe.user.id);
+    userRef.child(type).transaction((current) => (current || 0) + 1);
+    
+    // IP Address সেভ করা (একবার)
+    fetch('https://api.ipify.org?format=json')
+    .then(res => res.json())
+    .then(data => {
+        userRef.child("lastIP").set(data.ip);
+    });
+}
+
+// ৪. অ্যাড দেখার ফাংশন
+function watchAd(link, slotId) {
+    if(!link) return alert("Ad not ready!");
+    window.open(link, '_blank');
+    
+    // ইউজারকে পয়েন্ট দেওয়া এবং স্ট্যাটাস আপডেট
+    trackUserStats("adsWatched");
+    // আপনার কয়েন অ্যাড করার ফাংশন এখানে কল করুন (যেমন: addCoins(10))
+}
+
+// ৫. ব্লক চেক (অ্যাডমিন থেকে ব্লক করলে অ্যাপ বন্ধ হয়ে যাবে)
+db.ref("users/" + tg.initDataUnsafe.user.id + "/status").on("value", (snap) => {
+    if(snap.val() === "blocked") {
+        document.body.innerHTML = "<h1 style='color:red; text-align:center; margin-top:50px;'>You are Blocked by Admin!</h1>";
+    }
+});
 </script>
 </body>
 </html>
