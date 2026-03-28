@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoinX - Admin Panel</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    <style>
+        body { font-family: sans-serif; background: #121212; color: white; padding: 20px; }
+        .card { background: #1e1e1e; padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #333; }
+        h2 { color: #00d4aa; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        input, button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 5px; border: none; outline: none; }
+        input { background: #2a2a2a; color: white; }
+        button { background: #00d4aa; color: black; font-weight: bold; cursor: pointer; }
+        button:active { transform: scale(0.98); }
+        .user-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #333; }
+        #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #121212; display: flex; align-items: center; justify-content: center; z-index: 1000; }
+    </style>
+</head>
+<body>
+
+<div id="login-screen">
+    <div class="card" style="width: 300px; text-align: center;">
+        <h3>Admin Login</h3>
+        <input type="password" id="admin-pass" placeholder="Enter Password">
+        <button onclick="checkPass()">Login</button>
+    </div>
+</div>
+
+<h2>🚀 CoinX Admin Control</h2>
+
+<div class="card">
+    <h3>📢 Ads Management</h3>
+    <p>Current Monetag Link: <span id="current-link" style="color: #8a8fa8;">Loading...</span></p>
+    <input type="text" id="new-ad-link" placeholder="Paste Monetag Direct Link Here">
+    <button onclick="updateAdLink()">Update Ad Link</button>
+</div>
+
+<div class="card">
+    <h3>👥 User Statistics</h3>
+    <div id="user-list">Loading users...</div>
+</div>
+
+<div class="card" style="border-color: #ff4757;">
+    <h3>💰 Withdraw Requests</h3>
+    <div id="withdraw-list">No pending requests.</div>
+</div>
+
+<script>
+    // আপনার Firebase Config এখানে বসান (আপনার index.html থেকে কপি করে আনুন)
+    const firebaseConfig = {
+        apiKey: "AIzaSyA99YS1p8wBXnd2tnS3_FA_dKjwSf59-hY",
+        authDomain: "coinx-earn.firebaseapp.com",
+        databaseURL: "https://coinx-earn-default-rtdb.firebaseio.com",
+        projectId: "coinx-earn",
+        storageBucket: "coinx-earn.firebasestorage.app",
+        messagingSenderId: "205930694817",
+        appId: "1:205930694817:web:b039084e9ea82a73a048e0"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // পাসওয়ার্ড চেক করা (আপনার ইচ্ছা মতো পাসওয়ার্ড দিন)
+    function checkPass() {
+        const pass = document.getElementById('admin-pass').value;
+        if(pass === "123456") { // এখানে আপনার পাসওয়ার্ড সেট করুন
+            document.getElementById('login-screen').style.display = 'none';
+        } else {
+            alert("Wrong Password!");
+        }
+    }
+
+    // অ্যাড লিঙ্ক আপডেট করা
+    function updateAdLink() {
+        const newLink = document.getElementById('new-ad-link').value;
+        if(newLink) {
+            db.ref("settings/ad_link").set(newLink)
+            .then(() => alert("Ad Link Updated Successfully!"))
+            .catch(err => alert("Error: " + err));
+        }
+    }
+
+    // ফায়ারবেস থেকে বর্তমান লিঙ্ক এবং ইউজার ডাটা আনা
+    db.ref("settings/ad_link").on("value", (snap) => {
+        document.getElementById('current-link').innerText = snap.val() || "Not Set";
+    });
+
+    // ইউজার লিস্ট দেখা (ধরে নিচ্ছি 'users' নোডে ডাটা আছে)
+    db.ref("users").on("value", (snap) => {
+        const users = snap.val();
+        let html = "";
+        for(let id in users) {
+            html += `<div class="user-item">
+                <span>${users[id].name || "User"}</span>
+                <span style="color: #00d4aa;">${users[id].balance || 0} Coins</span>
+            </div>`;
+        }
+        document.getElementById('user-list').innerHTML = html;
+    });
+</script>
+
+</body>
+</html>
